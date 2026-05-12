@@ -129,3 +129,33 @@ chisq.test(table_gender_ambiguity)
 
 # effect size (Cramer's V)
 cramers_v(table_gender_ambiguity)
+
+## chi-square H3
+
+clean_3final_filtered <- clean_3final[clean_3final$E1 != "mixed", ]
+
+
+table_emotion <- table(clean_3final_filtered$B1, clean_3final_filtered $E1)
+
+# Chi-square test
+chisq.test(table_emotion)
+
+# Effect size
+cramers_v(table_emotion)
+
+# H2b: Chi-square 1 (Male/Female x Relationally embedded motives: Yes/No)
+table_relational_motive <- table(clean_2final$B1, clean_2final$relationally_embedded_motives)
+chisq.test(table_relational_motive)
+cramers_v(table_relational_motive)
+#H2b: Chi-square 2 (Male/Female x Status oriented motives: Yes/No)
+table_status_motive <-table(clean_2final$B1, clean_2final$status_oriented_motives)
+chisq.test(table_status_motive)
+
+##Trying my best: logistic regression H2a
+model_relational <- glm(relational_emotional_obstruction ~ B1 + structural_material_obstruction, 
+                        data = clean_2final, family = binomial)
+exp(coef(model_relational)); exp(confint(model_relational))
+
+model_structural <- glm(structural_material_obstruction ~ B1 + relational_emotional_obstruction, 
+                        data = clean_2final, family = binomial)
+exp(coef(model_structural)); exp(confint(model_structural))
