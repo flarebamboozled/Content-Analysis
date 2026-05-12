@@ -106,28 +106,26 @@ clean_3final  = clean_3 |>
     )
   )
 
-##t-test H1a
+# t-test H1a
 male_ses <- clean_1a$c_scale[clean_1a$B1 == "Male"]
 female_ses <- clean_1a$c_scale[clean_1a$B1 == "Female"]
 tidy(t.test(male_ses, female_ses, alternative = "greater", var.equal = FALSE))
 cohens_d(c_scale ~ B1, data = clean_1a)
 
-# Chi-square H1b
+# chi-square H1b
 table_gender_ambiguity <- table(clean_1b$B1, clean_1b$C4)
 
-
+# contingency table
 dimnames(table_gender_ambiguity) <- list(
   Gender = c("Male", "Female"),
   Ambiguity = c("Ambiguous", "Not Ambiguous")
 )
 
-
+# show the results for contingency table
 table_gender_ambiguity
 
-# Run chi-square test
+# run chi-square test
 chisq.test(table_gender_ambiguity)
 
-# Effect size (Cramer's V)
-# install.packages("effectsize")
-library(effectsize)
+# effect size (Cramer's V)
 cramers_v(table_gender_ambiguity)
