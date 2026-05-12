@@ -21,6 +21,8 @@ clean = unclean[, !names(unclean) %in% c("A4_4_TEXT", "B1_0_TEXT", "C2_0_TEXT", 
 
 # then remove the cases that are not supposed to be included for all data analysis. e.g. for question B1, any cases falls under non-binary or others should be removed
 clean = clean[!(clean$B1 %in% c(0, 3)), ]
+
+# relabel the genders
 clean$B1 <- factor(clean$B1, levels = c(1, 2), labels = c("Male", "Female"))
 
 # 1.create separate tibbles for different hypothesis
@@ -70,43 +72,43 @@ clean_2final <- clean_2 |>
   left_join(clean_2dummy, by = "row_id") |>
   select(-row_id)
 
-# now merge the labels as we intended
-#clean_final <- clean_final |>
- # mutate(
+select(-any_of(c("row_id", "D2_1", "D2_2", "D2_3", "D2_4", "D2_5", "D2_6")))
+
+# now rename the column names into actual labels
+clean_2final <- clean_2final |>
+  rename(
+    relational_emotional_obstruction = D1_1,
+    structural_material_obstruction = D1_2,
+    physical_obstruction_or_threat = D1_3,
+    personal_private_sphere = D3_1,
+    public_professional_sphere = D3_2
+  ) 
+
+# now merge D2 labels into two non-mutually-exclusive motive variables
+clean_2final = clean_2final |>
+  mutate(
     
-#  )
+    relationally_embedded_motives = as.integer(
+      rowSums(across(any_of(c("D2_1", "D2_2", "D2_5"))), na.rm = TRUE) > 0
+    ),
+    status_oriented_motives = as.integer(
+      rowSums(across(any_of(c("D2_3", "D2_4", "D2_6"))), na.rm = TRUE) > 0
+    )
+  )
 
 # and we do the same things for RQ 3
 cols_3 = c("A2", "B1", "E1")
 clean_3 = clean[cols_3]
 
-clean_3long <- clean_3 |>
-  mutate(row_id = row_number()) |>
-  select(row_id, "E1") |>
-  pivot_longer(
-    cols = "E1",
-    names_to = "question",
-    values_to = "answer"
-  ) |>
-  separate_longer_delim(answer, delim = ",") |>
+clean_3final  = clean_3 |>
   mutate(
-    answer = trimws(answer),
-    selected = 1
+    E1 = case_when(
+      E1 == 1 ~ "calm",
+      E1 == 2 ~ "emotional",
+      E1 == 3 ~ "mixed",
+      TRUE ~ NA_character_
+    )
   )
-
-clean_3dummy <- clean_3long |>
-  unite("var", question, answer, sep = "_") |>
-  pivot_wider(
-    id_cols = row_id,
-    names_from = var,
-    values_from = selected,
-    values_fill = 0
-  )
-
-clean_3final <- clean_3 |>
-  mutate(row_id = row_number()) |>
-  left_join(clean_3dummy, by = "row_id") |>
-  select(-row_id)
 
 ##t-test H1a
 male_ses <- clean_1a$c_scale[clean_1a$B1 == "Male"]
