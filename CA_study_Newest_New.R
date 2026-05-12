@@ -70,12 +70,6 @@ clean_2final <- clean_2 |>
   left_join(clean_2dummy, by = "row_id") |>
   select(-row_id)
 
-# now merge the labels as we intended
-#clean_final <- clean_final |>
- # mutate(
-    
-#  )
-
 # and we do the same things for RQ 3
 cols_3 = c("A2", "B1", "E1")
 clean_3 = clean[cols_3]
