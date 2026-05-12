@@ -1,7 +1,15 @@
 library(tidyverse)
+library(readr)
+
 
 # we use read.csv2 here because the separator is ";"
-unclean = read.csv2('CA_study.csv')
+# we need to make D3 as characters because read_csv2 treat "," as the decimal mark, but in practice that is also just a separator
+unclean = read_csv2(
+  "CA_study.csv",
+  col_types = cols(
+    D3 = col_character()
+  )
+)
 
 # check if there is any drama language other than English, Chinese and Korean
 lancheck = any(unclean$A4 == 0, na.rm = TRUE)
@@ -21,3 +29,6 @@ clean_1a = clean[cols_1a]
 
 clean_1a = clean_1a[!apply(clean_1a[, cols_1a] == 0, 1, any), ] |> 
   mutate(c_scale = round((C1 + C2 + C3)/3, 2)) # create a scale for social economic status
+
+col_1b = c("B1", "C4")
+clean_1b = clean[cols_1b]
