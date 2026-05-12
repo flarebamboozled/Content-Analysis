@@ -1,85 +1,4 @@
-﻿A1;A2;A3;A3;A3_4_TEXT;B1;B1_0_TEXT;B2;C1;C2;C2_0_TEXT;C3;C3_0_TEXT;C4;D1;D1_0_TEXT;D2;D2_0_TEXT;D3;D3_0_TEXT;E1;E1_0_TEXT;F1
-Who filled in this entry?;"What is the Registration ID? (4 digits)
-
-(Note: Each coding entry must receive a unique 4 digit ID in the format of  [SeriesID + Submission Sequence within that series]. )";What is the identifier of the antagonist?;What is the main spoken language in the microseries? - Selected Choice;What is the main spoken language in the microseries? - Other (Please specify) - Text;What is the gender of the antagonist? - Selected Choice;"What is the gender of the antagonist? - Other (Please specify)
-
-*please only use this option when it is necessary !* - Text";"What age category does the antagonist appear to belong to within the narrative?
-
-
-
-Note: Since precise age information may not be available, in situations of visual ambiguity, you may use lifestyle information to differentiate this category from the upper limit of the previous category. You may use parenthood status (parent of a child aged ten or above) and professional status (senior roles, mid-career positioning). You may also use family positioning as an age cue. For example, the second generation in a family is most likely middle-aged, e.g. parents, uncles, and aunts, as opposed to third generation (children) and first generation (grandparents). Examples: a senior manager; the parent of a teenage child; the protagonist’s aunt or uncle.";"What is the antagonist’s occupational status?
-
-
-
-Note: For company or family heirs, code high-status. And, in general, occupations depicted as prestigious or highly desirable in the microdrama’s universe. Only use code unemployed if the character is explicitly referred to as unemployed at the time the series’ action occurs. For situations in which the character’s occupation is simply not specified, refer to not mentioned/other.
-
-
-
-For retired people: If the antagonist is presented as retired, code based on their former occupation before retirement, provided that this former occupation is explicitly stated or clearly established in the narrative. If the character is retired but their former occupation is not mentioned or cannot be determined, code not mentioned and specify this in the open-ended field.";What material lifestyle or level of material possessions is the antagonist associated with? - Selected Choice;"What material lifestyle or level of material possessions is the antagonist associated with? - Not mentioned / Other (Please specify)
-
-*please only use this option when it is necessary !* - Text";How financially secure is the antagonist if they were to lose their current main source of income or financial support? - Selected Choice;"How financially secure is the antagonist if they were to lose their current main source of income or financial support? - Not mentioned / other (Please specify)
-
-*please only use this option when it is necessary !* - Text";"Is there a clear inconsistency between the antagonist’s occupational status and material possessions?
-
-(Note:Code whether the antagonist is portrayed with a clear inconsistency between their occupational status and their material possessions.)
-
-
-Code 1 in either one of these scenarios:
-
-
-	If C1 ≠ 0, code 1 if  |C1 - C2| >= 2, where C1 and C2 stand for the values coded on the respective questions. Example: an antagonist whose occupation is coded as low-status, e.g. janitor (C1 = 2), but who enjoys a lifestyle of luxury (C2 = 4)
-	If C1 = 0,  i.e. the occupation is never shown, code 1 if C2 = 3 or C2 = 4. Example: An antagonist whose job is simply not mentioned throughout the entire series (C1 = 0) somehow being surrounded by luxury goods, having up-scale clothes, or living in a fancy mansion (C2 = 4). 
-	Exception: the same rules do not apply to minors. There is no inconsistency for an unemployed minor to be living a luxury lifestyle, since they are in custody of their parents.";"What is the type(s) of obstruction used by the antagonist in this series?
-
-(Note: Do not code minor physical confrontations)
-
-
-
-Mechanism versus target: Some actions combine elements of different obstruction types. When this happens, ask yourself: what is the antagonist's tool? A character who uses financial threats to destroy a romantic relationship is using a structural mechanism, even though the target is relational. A character who uses emotional manipulation to get the protagonist fired is using a relational mechanism, even though the target is professional. 
-
-
-
-Indirect physical obstruction should also be coded under this category. For example, an antagonist may not attack the protagonist themselves, but rather send hitmen or bodyguards to carry out the attack. - Selected Choice";"What is the type(s) of obstruction used by the antagonist in this series?
-
-(Note: Do not code minor physical confrontations)
-
-
-
-Mechanism versus target: Some actions combine elements of different obstruction types. When this happens, ask yourself: what is the antagonist's tool? A character who uses financial threats to destroy a romantic relationship is using a structural mechanism, even though the target is relational. A character who uses emotional manipulation to get the protagonist fired is using a relational mechanism, even though the target is professional. 
-
-
-
-Indirect physical obstruction should also be coded under this category. For example, an antagonist may not attack the protagonist themselves, but rather send hitmen or bodyguards to carry out the attack. - Other (Please specify)
-
-*please only use this option when it is necessary !* - Text";"What is the antagonist’s motivation(s) for obstructions in this series?
-
-
-
-Professional ambition or competition applies when the antagonist's actions are driven by a desire to advance their own career, secure a business advantage, or eliminate the protagonist as a professional competitor. Financial greed or material gain applies when the antagonist's driver is acquiring money, property, or other material resources. Distinct from professional ambition in that the focus is on wealth itself rather than status or career advancement, but also note that they can largely overlap in certain settings. - Selected Choice";"What is the antagonist’s motivation(s) for obstructions in this series?
-
-
-
-Professional ambition or competition applies when the antagonist's actions are driven by a desire to advance their own career, secure a business advantage, or eliminate the protagonist as a professional competitor. Financial greed or material gain applies when the antagonist's driver is acquiring money, property, or other material resources. Distinct from professional ambition in that the focus is on wealth itself rather than status or career advancement, but also note that they can largely overlap in certain settings. - Motivation not made clear / Other (Please specify)
-
-*please only use this option when it is necessary !* - Text";"What is the scope(s) of the antagonist’s obstructive actions in this series?
-
- 
-Focus on the domain of the protagonist's life that is being targeted, not the antagonist's own domain or motivation. A wealthy executive who uses their financial power to interfere in the protagonist's romantic relationship is targeting the personal sphere, even though the mechanism used belongs to the professional world. Focus on where the damage lands, not where it comes from. - Selected Choice";"What is the scope(s) of the antagonist’s obstructive actions in this series?
-
- 
-Focus on the domain of the protagonist's life that is being targeted, not the antagonist's own domain or motivation. A wealthy executive who uses their financial power to interfere in the protagonist's romantic relationship is targeting the personal sphere, even though the mechanism used belongs to the professional world. Focus on where the damage lands, not where it comes from. - Cannot be determined (Please specify)
-
-*please only use this option when it is necessary !* - Text";"How is the antagonist primarily portrayed in terms of emotional expression?
-
-
-
-Code based on the initial depiction of the antagonist (across the first 5 episodes). Microdrama characters tend to be one-note and an antagonist’s emotional register typically stays the same throughout the series and is easier to identify before the main events of the series occur. Mixed register will most likely apply if a character’s emotional register changes throughout the series, or in the rarer event that the character seems to rapidly oscillate between a calm and controlled state and an emotionally volatile state. - Selected Choice";"How is the antagonist primarily portrayed in terms of emotional expression?
-
-
-
-Code based on the initial depiction of the antagonist (across the first 5 episodes). Microdrama characters tend to be one-note and an antagonist’s emotional register typically stays the same throughout the series and is easier to identify before the main events of the series occur. Mixed register will most likely apply if a character’s emotional register changes throughout the series, or in the rarer event that the character seems to rapidly oscillate between a calm and controlled state and an emotionally volatile state. - Cannot be determined (Please specify)
-
-*please only use this option when it is necessary !* - Text";Please record any remarks for this coding entry.
+﻿A1;A2;A3;A4;A4_4_TEXT;B1;B1_0_TEXT;B2;C1;C2;C2_0_TEXT;C3;C3_0_TEXT;C4;D1;D1_0_TEXT;D2;D2_0_TEXT;D3;D3_0_TEXT;E1;E1_0_TEXT;F1
 1;1311;Justin Clarke;2;;1;;2;4;4;;4;;2;1,3;;1,3;;1;;1;;
 1;1312;Yvette Lawson;2;;2;;2;0;4;;2;;1;1,3;;4;;1;;2;;
 1;1313;Dexter;2;;1;;2;0;3;;3;;1;3;;4;;1;;1;;
@@ -343,3 +262,13 @@ Code based on the initial depiction of the antagonist (across the first 5 episod
 3;1263;Josie Leigh;2;;2;;2;1;4;;4;;1;1,3;;2,5;;1,2;;2;;
 1;1601;Yara Aston;2;;2;;2;0;4;;4;;1;1,3;;1;;1;;3;;
 1;1602;Shane's sister;2;;2;;2;0;4;;4;;1;1,3;;2;;1;;3;;
+3;1271;Peter Astor;1;;1;;2;4;4;;4;;2;1,3;;3,4;;1,2;;1;;
+3;1272;Farren Blanchet;1;;2;;2;1;4;;4;;1;1,3;;1,4;;1;;2;;
+3;1273;Tiffany;1;;2;;2;1;4;;4;;1;1;;5;;1,2;;2;;
+3;1274;Tiffany's dad;1;;1;;3;4;4;;4;;2;2;;2;;1;;1;;
+3;1281;Go Hee-jun;3;;1;;2;3;2;;3;;2;1;;1;;1;;2;;
+3;1282;Han Song-i;3;;2;;2;0;2;;3;;2;1;;1;;1;;1;;
+3;1291;Cain De Vere;1;;1;;2;4;4;;4;;2;1,2,3;;1,2;;1;;3;;
+3;1292;Olivia De Vere;1;;2;;2;1;4;;4;;1;1,3;;1,5;;1;;2;;
+3;1293;Donna;1;;2;;2;1;4;;4;;1;3;;1;;1;;2;;
+3;1301;Amanda Carter;1;;2;;2;1;4;;4;;1;1,2,3;;3,5;;1,2;;2;;
