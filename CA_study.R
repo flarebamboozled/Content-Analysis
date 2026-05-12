@@ -224,8 +224,39 @@ chisq.test(table_relational_motives)
 chisq.test(table_status_motives)
 
 # effect size (Cramer's V)
-cramers_v(table_relational_motive)
+cramers_v(table_relational_motives)
 
+
+## chi-square H2c
+# contingency table for private sphere
+table_personal_private_sphere <- table(
+  clean_2final$B1,
+  clean_2final$personal_private_sphere
+)
+
+dimnames(table_personal_private_sphere) <- list(
+  Gender = c("Male", "Female"),
+  `Personal / private sphere` = c("Absent", "Present")
+)
+
+table_personal_private_sphere
+
+# contingency table for public sphere
+table_public_professional_sphere <- table(
+  clean_2final$B1,
+  clean_2final$public_professional_sphere
+)
+
+dimnames(table_public_professional_sphere) <- list(
+  Gender = c("Male", "Female"),
+  `Public / professional sphere` = c("Absent", "Present")
+)
+
+table_public_professional_sphere
+
+# run chi-sqaure
+chisq.test(table_personal_private_sphere)
+chisq.test(table_public_professional_sphere)
 
 ## chi-square H3
 # contingency table
