@@ -24,11 +24,83 @@ clean = clean[!(clean$B1 %in% c(0, 3)), ]
 # 2.remove cases when they contain at least one "not mentioned / other" answers
 # 3.further clean / alter the data set to fit the data analysis
 
-cols_1a = c("B1", "C1", "C2", "C3")
+cols_1a = c("A2", "B1", "C1", "C2", "C3")
 clean_1a = clean[cols_1a]
 
 clean_1a = clean_1a[!apply(clean_1a[, cols_1a] == 0, 1, any), ] |> 
   mutate(c_scale = round((C1 + C2 + C3)/3, 2)) # create a scale for social economic status
 
-col_1b = c("B1", "C4")
+cols_1b = c("A2", "B1", "C4")
 clean_1b = clean[cols_1b]
+
+# for RQ 2 we have to make the variables dummy coded
+cols_2 = c("A2", "B1", "D1", "D2", "D3")
+clean_2 = clean[cols_2] 
+
+cols_D <- c("D1", "D2", "D3")
+
+clean_2long <- clean_2 |>
+  mutate(row_id = row_number()) |>
+  select(row_id, all_of(cols_D)) |>
+  pivot_longer(
+    cols = all_of(cols_D),
+    names_to = "question",
+    values_to = "answer"
+  ) |>
+  separate_longer_delim(answer, delim = ",") |>
+  mutate(
+    answer = trimws(answer),
+    selected = 1
+  )
+
+clean_2dummy <- clean_2long |>
+  unite("var", question, answer, sep = "_") |>
+  pivot_wider(
+    id_cols = row_id,
+    names_from = var,
+    values_from = selected,
+    values_fill = 0
+  )
+
+clean_2final <- clean_2 |>
+  mutate(row_id = row_number()) |>
+  left_join(clean_2dummy, by = "row_id") |>
+  select(-row_id)
+
+# now merge the labels as we intended
+clean_final <- clean_final |>
+  mutate(
+    
+  )
+
+# and we do the same things for RQ 3
+cols_3 = c("A2", "B1", "E1")
+clean_3 = clean[cols_3]
+
+clean_3long <- clean_3 |>
+  mutate(row_id = row_number()) |>
+  select(row_id, "E1") |>
+  pivot_longer(
+    cols = "E1",
+    names_to = "question",
+    values_to = "answer"
+  ) |>
+  separate_longer_delim(answer, delim = ",") |>
+  mutate(
+    answer = trimws(answer),
+    selected = 1
+  )
+
+clean_3dummy <- clean_3long |>
+  unite("var", question, answer, sep = "_") |>
+  pivot_wider(
+    id_cols = row_id,
+    names_from = var,
+    values_from = selected,
+    values_fill = 0
+  )
+
+clean_3final <- clean_3 |>
+  mutate(row_id = row_number()) |>
+  left_join(clean_3dummy, by = "row_id") |>
+  select(-row_id)
