@@ -68,7 +68,7 @@ clean_2dummy <- clean_2long |>
 clean_2final <- clean_2 |>
   mutate(row_id = row_number()) |>
   left_join(clean_2dummy, by = "row_id") |>
-  select(-any_of(c("row_id", "D2_1", "D2_2", "D2_3", "D2_4", "D2_5", "D2_6")))
+  select(-row_id)
 
 # now rename the column names into actual labels
 clean_2final <- clean_2final |>
@@ -78,19 +78,19 @@ clean_2final <- clean_2final |>
     physical_obstruction_or_threat = D1_3,
     personal_private_sphere = D3_1,
     public_professional_sphere = D3_2
-  ) 
+  )
 
 # now merge D2 labels into two non-mutually-exclusive motive variables
 clean_2final = clean_2final |>
   mutate(
-    
     relationally_embedded_motives = as.integer(
       rowSums(across(any_of(c("D2_1", "D2_2", "D2_5"))), na.rm = TRUE) > 0
     ),
     status_oriented_motives = as.integer(
       rowSums(across(any_of(c("D2_3", "D2_4", "D2_6"))), na.rm = TRUE) > 0
     )
-  )
+  )|> 
+  select(-any_of(c("D2_1", "D2_2", "D2_3", "D2_4", "D2_5", "D2_6")))
 
 # and we do the same things for RQ 3
 cols_3 = c("A2", "B1", "E1")
@@ -106,22 +106,23 @@ clean_3final  = clean_3 |>
     )
   )
 
-# t-test H1a
+## t-test H1a
 male_ses <- clean_1a$c_scale[clean_1a$B1 == "Male"]
 female_ses <- clean_1a$c_scale[clean_1a$B1 == "Female"]
 tidy(t.test(male_ses, female_ses, alternative = "greater", var.equal = FALSE))
 cohens_d(c_scale ~ B1, data = clean_1a)
 
-# chi-square H1b
+
+
+## chi-square H1b
+# contingency table
 table_gender_ambiguity <- table(clean_1b$B1, clean_1b$C4)
 
-# contingency table
 dimnames(table_gender_ambiguity) <- list(
   Gender = c("Male", "Female"),
   Ambiguity = c("Ambiguous", "Not Ambiguous")
 )
 
-# show the results for contingency table
 table_gender_ambiguity
 
 # run chi-square test
@@ -130,28 +131,57 @@ chisq.test(table_gender_ambiguity)
 # effect size (Cramer's V)
 cramers_v(table_gender_ambiguity)
 
-## chi-square H3
-
-clean_3final_filtered <- clean_3final[clean_3final$E1 != "mixed", ]
 
 
-table_emotion <- table(clean_3final_filtered$B1, clean_3final_filtered $E1)
+## chi-square H2a
+# contingency table for relational obstruction
+table_relational_obstruction <- table(
+  clean_2final$B1,
+  clean_2final$relational_emotional_obstruction
+)
 
-# Chi-square test
-chisq.test(table_emotion)
+dimnames(table_relational_obstruction) <- list(
+  Gender = c("Male", "Female"),
+  `Relational / emotional obstruction` = c("Absent", "Present")
+)
 
-# Effect size
-cramers_v(table_emotion)
+table_relational_obstruction
 
-# H2b: Chi-square 1 (Male/Female x Relationally embedded motives: Yes/No)
-table_relational_motive <- table(clean_2final$B1, clean_2final$relationally_embedded_motives)
-chisq.test(table_relational_motive)
-cramers_v(table_relational_motive)
-#H2b: Chi-square 2 (Male/Female x Status oriented motives: Yes/No)
-table_status_motive <-table(clean_2final$B1, clean_2final$status_oriented_motives)
-chisq.test(table_status_motive)
+# contingency table for structural obstruction
+table_structural_obstruction <- table(
+  clean_2final$B1,
+  clean_2final$structural_material_obstruction
+)
 
-##Trying my best: logistic regression H2a
+dimnames(table_structural_obstruction) <- list(
+  Gender = c("Male", "Female"),
+  `Structural / material obstruction` = c("Absent", "Present")
+)
+
+table_structural_obstruction
+
+# contingency table for physical obstruction
+table_physical_obstruction <- table(
+  clean_2final$B1,
+  clean_2final$physical_obstruction_or_threat
+)
+
+dimnames(table_physical_obstruction) <- list(
+  Gender = c("Male", "Female"),
+  `Physical obstruction or threat` = c("Absent", "Present")
+)
+
+table_physical_obstruction
+
+# run chi-square test
+chisq.test(table_relational_obstruction)
+chisq.test(table_structural_obstruction)
+chisq.test(table_physical_obstruction)
+
+# effect size (Cramer's V)
+cramers_v(table_relational_obstruction)
+
+## trying my best: logistic regression H2a
 model_relational <- glm(relational_emotional_obstruction ~ B1 + structural_material_obstruction, 
                         data = clean_2final, family = binomial)
 exp(coef(model_relational)); exp(confint(model_relational))
@@ -159,3 +189,53 @@ exp(coef(model_relational)); exp(confint(model_relational))
 model_structural <- glm(structural_material_obstruction ~ B1 + relational_emotional_obstruction, 
                         data = clean_2final, family = binomial)
 exp(coef(model_structural)); exp(confint(model_structural))
+
+
+
+## chi-square H2b
+# contingency table for relational motives
+table_relational_motives <- table(
+  clean_2final$B1,
+  clean_2final$relationally_embedded_motives
+)
+
+dimnames(table_relational_motives) <- list(
+  Gender = c("Male", "Female"),
+  `Relationally embedded motives` = c("Absent", "Present")
+)
+
+table_relational_motives
+
+# contingency table for status motives
+table_status_motives <- table(
+  clean_2final$B1,
+  clean_2final$status_oriented_motives
+)
+
+dimnames(table_status_motives) <- list(
+  Gender = c("Male", "Female"),
+  `Status-oriented motives` = c("Absent", "Present")
+)
+
+table_status_motives
+
+# run chi-square test
+chisq.test(table_relational_motives)
+chisq.test(table_status_motives)
+
+# effect size (Cramer's V)
+cramers_v(table_relational_motive)
+
+
+## chi-square H3
+# contingency table
+clean_3final_filtered <- clean_3final[clean_3final$E1 != "mixed", ]
+
+table_emotion <- table(clean_3final_filtered$B1, clean_3final_filtered $E1)
+
+# run chi-square test
+chisq.test(table_emotion)
+
+# effect size (Cramer's V)
+cramers_v(table_emotion)
+
