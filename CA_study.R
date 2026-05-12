@@ -1,8 +1,6 @@
-install.packages("broom")
 library(tidyverse)
 library(readr)
 library(broom)
-install.packages("effectsize")
 library(effectsize)
 # we use read.csv2 here because the separator is ";"
 # we need to make D3 as characters because read_csv2 treat "," as the decimal mark, but in practice that is also just a separator
@@ -70,9 +68,7 @@ clean_2dummy <- clean_2long |>
 clean_2final <- clean_2 |>
   mutate(row_id = row_number()) |>
   left_join(clean_2dummy, by = "row_id") |>
-  select(-row_id)
-
-select(-any_of(c("row_id", "D2_1", "D2_2", "D2_3", "D2_4", "D2_5", "D2_6")))
+  select(-any_of(c("row_id", "D2_1", "D2_2", "D2_3", "D2_4", "D2_5", "D2_6")))
 
 # now rename the column names into actual labels
 clean_2final <- clean_2final |>
