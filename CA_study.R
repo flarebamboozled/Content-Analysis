@@ -1,7 +1,9 @@
+install.packages("patchwork")
 library(tidyverse)
 library(readr)
 library(broom)
 library(effectsize)
+library(ggplot2)
 # we use read.csv2 here because the separator is ";"
 # we need to make D3 as characters because read_csv2 treat "," as the decimal mark, but in practice that is also just a separator
 unclean = read_csv2(
@@ -181,6 +183,15 @@ chisq.test(table_physical_obstruction)
 # effect size (Cramer's V)
 cramers_v(table_relational_obstruction)
 
+## trying my best: logistic regression H2a
+model_relational <- glm(relational_emotional_obstruction ~ B1 + structural_material_obstruction, 
+                        data = clean_2final, family = binomial)
+exp(coef(model_relational)); exp(confint(model_relational))
+
+model_structural <- glm(structural_material_obstruction ~ B1 + relational_emotional_obstruction, 
+                        data = clean_2final, family = binomial)
+exp(coef(model_structural)); exp(confint(model_structural))
+
 
 
 ## chi-square H2b
@@ -215,47 +226,30 @@ chisq.test(table_relational_motives)
 chisq.test(table_status_motives)
 
 # effect size (Cramer's V)
-cramers_v(table_relational_motives)
+cramers_v(table_relational_motive)
+
+#logistic regression H2b -  flopped!!!!!!!
+
+model_relationally_embed<- glm(relationally_embedded_motives ~ B1 + status_oriented_motives, 
+                        data = clean_2final, family = binomial)
 
 
-## chi-square H2c
-# contingency table for private sphere
-table_personal_private_sphere <- table(
-  clean_2final$B1,
-  clean_2final$personal_private_sphere
-)
+model_status <- glm(status_oriented_motives ~ B1 + relationally_embedded_motives, 
+                    data = clean_2final, family = binomial)
 
-dimnames(table_personal_private_sphere) <- list(
-  Gender = c("Male", "Female"),
-  `Personal / private sphere` = c("Absent", "Present")
-)
+# Odds ratios + CIs
+exp(coef(model_relationally_embed)); exp(confint(model_relationally_embed))
+exp(coef(model_status)); exp(confint(model_status)
 
-table_personal_private_sphere
-
-# contingency table for public sphere
-table_public_professional_sphere <- table(
-  clean_2final$B1,
-  clean_2final$public_professional_sphere
-)
-
-dimnames(table_public_professional_sphere) <- list(
-  Gender = c("Male", "Female"),
-  `Public / professional sphere` = c("Absent", "Present")
-)
-
-table_public_professional_sphere
-
-# run chi-sqaure
-chisq.test(table_personal_private_sphere)
-chisq.test(table_public_professional_sphere)
-
-
+table(clean_2final$B1, 
+      clean_2final$relationally_embedded_motives, 
+      clean_2final$status_oriented_motives)
 
 ## chi-square H3
 # contingency table
 clean_3final_filtered <- clean_3final[clean_3final$E1 != "mixed", ]
 
-table_emotion <- table(clean_3final_filtered$B1, clean_3final_filtered $E1)
+table_emotion <- table(clean_3final_filtered$B1, clean_3final_filtered$E1)
 
 # run chi-square test
 chisq.test(table_emotion)
@@ -263,158 +257,283 @@ chisq.test(table_emotion)
 # effect size (Cramer's V)
 cramers_v(table_emotion)
 
+##by language
+clean <- clean |>
+  mutate(c_scale = round((C1 + C2 + C3)/3, 2))
 
+ggplot(clean, aes(x = B1, y = c_scale)) +
+  geom_boxplot() +
+  facet_wrap(~ A4) +
+  theme_minimal()
 
-
-
-
-
-##-------------Exploratory Analysis---------------------
-
-# Does certain narrative role pattern cluster?
-table(clean_2final$B1,
-      clean_2final$relational_emotional_obstruction,
-      clean_2final$relationally_embedded_motives)
-
-table(clean_2final$B1,
-      clean_2final$structural_material_obstruction,
-      clean_2final$status_oriented_motives)
-
-table(clean_2final$B1,
-      clean_2final$relational_emotional_obstruction,
-      clean_2final$personal_private_sphere)
-
-# Test the cluster relational obstruction X relational motives X private sphere in genders (according to the contingency tables)
-clean_2final <- clean_2final |>
-  mutate(
-    relational_cluster = as.integer(
-      relational_emotional_obstruction == 1 &
-        relationally_embedded_motives == 1 &
-        personal_private_sphere == 1
-    )
-  )
-
-rel_cluster_table <- table(
-  Gender = clean_2final$B1,
-  RelationalCluster = clean_2final$relational_cluster
-)
-
-rel_cluster_table
-
-prop.table(rel_cluster_table, margin = 1) * 100
-
-chisq.test(rel_cluster_table, correct = FALSE)
-
-cramers_v(rel_cluster_table)
-
-# Logistic regression on the same one
-model_rel_cluster <- glm(
-  relational_cluster ~ B1,
-  data = clean_2final,
-  family = binomial
-)
-
-summary(model_rel_cluster)
-
-exp(coef(model_rel_cluster)) # Odds ratio
-
-exp(confint(model_rel_cluster))
-
-
-
-## Construct mutual exclusive variables (for robustness test)
-clean_2final <- clean_2final |>
-  mutate(obstruction_type = case_when(
-    relational_emotional_obstruction == 1 & structural_material_obstruction == 0 ~ "Relational only",
-    relational_emotional_obstruction == 0 & structural_material_obstruction == 1 ~ "Structural only",
-    relational_emotional_obstruction == 1 & structural_material_obstruction == 1 ~ "Both",
-    relational_emotional_obstruction == 0 & structural_material_obstruction == 0 ~ "Neither"
-  ))
-
-obstruction_table <- table(clean_2final$B1, clean_2final$obstruction_type)
-obstruction_table
-chisq.test(obstruction_table)
-cramers_v(obstruction_table)
-
-
-
-clean_2final <- clean_2final |>
-  mutate(motive_type = case_when(
-    relationally_embedded_motives == 1 & status_oriented_motives == 0 ~ "Relational only",
-    relationally_embedded_motives == 0 & status_oriented_motives == 1 ~ "Status only",
-    relationally_embedded_motives == 1 & status_oriented_motives == 1 ~ "Both",
-    relationally_embedded_motives == 0 & status_oriented_motives == 0 ~ "Neither"
-  ))
-
-motive_table <- table(clean_2final$B1, clean_2final$motive_type)
-motive_table
-chisq.test(motive_table)
-cramers_v(motive_table)
-
-
-
-clean_2final <- clean_2final |>
-  mutate(sphere_type = case_when(
-    personal_private_sphere == 1 & public_professional_sphere == 0 ~ "Personal/private only",
-    personal_private_sphere == 0 & public_professional_sphere == 1 ~ "Public/professional only",
-    personal_private_sphere == 1 & public_professional_sphere == 1 ~ "Both",
-    personal_private_sphere == 0 & public_professional_sphere == 0 ~ "Neither"
-  ))
-
-sphere_table <- table(clean_2final$B1, clean_2final$sphere_type)
-sphere_table
-chisq.test(sphere_table)
-
-
-# Sphere type not significant, try removing the cases that contains both sphere
-sphere_pure <- clean_2final |>
-  filter(sphere_type %in% c("Personal/private only", "Public/professional only"))
-
-sphere_pure_table <- table(sphere_pure$B1, sphere_pure$sphere_type)
-
-sphere_pure_table
-prop.table(sphere_pure_table, margin = 1) * 100
-
-chisq.test(sphere_pure_table)   # Still not significant, could be concerning could be
-
-
-## Cultural difference
-cols_lang_ses <- c("A2", "A4", "B1", "C1", "C2", "C3")
-clean_lang_ses <- clean[cols_lang_ses]
-
-# Remove cases with "not mentioned / other" answers in SES items
-clean_lang_ses <- clean_lang_ses[!apply(clean_lang_ses[, c("C1", "C2", "C3")] == 0, 1, any), ]
-
-# Create SES scale (not significant at all)
-clean_lang_ses <- clean_lang_ses |>
-  mutate(
-    c_scale = round((C1 + C2 + C3) / 3, 2)
-  )
-
-clean_lang_ses <- clean_lang_ses |>
-  mutate(
-    language = case_when(
-      A4 == 1 ~ "English",
-      A4 == 2 ~ "Chinese",
-      A4 == 3 ~ "Korean",
-      TRUE ~ NA_character_
-    ),
-    language = factor(language)
-  )
-
-clean_lang_ses |>
-  group_by(language) |>
+clean|>
+  group_by(A4, B1)|>
   summarise(
-    n = n(),
-    mean_ses = mean(c_scale, na.rm = TRUE),
-    sd_ses = sd(c_scale, na.rm = TRUE),
-    median_ses = median(c_scale, na.rm = TRUE),
-    min_ses = min(c_scale, na.rm = TRUE),
-    max_ses = max(c_scale, na.rm = TRUE)
+    mean_SES = mean(c_scale, na.rm = TRUE),
+    n = n()
   )
 
-model_lang_ses <- aov(c_scale ~ language, data = clean_lang_ses)
 
-summary(model_lang_ses)
 
-TukeyHSD(model_lang_ses)
+#Visualization: H1a
+
+p <- ggplot(clean_1a, aes(x = B1, y = c_scale, fill = B1)) +
+  
+  # Violin shape
+  geom_violin(trim = FALSE, alpha = 0.7, colour = NA) +
+  
+  # Boxplot inside the violin (width controls how thin it is)
+  geom_boxplot(width = 0.12, fill = "white", colour = "grey30",
+               outlier.shape = NA) +
+  
+  # Jittered raw data points (remove if n is very large)
+  geom_jitter(aes(colour = B1), width = 0.05, size = 1.2,
+              alpha = 0.4, show.legend = FALSE) +
+  
+  # Mean dot
+  stat_summary(fun = mean, geom = "point", shape = 18,
+               size = 4, colour = "black") +
+  
+  # Colour palette — change hex codes to your preference
+  scale_fill_manual(values  = c("Female" = "#fffa93", "Male" = "#a7e7ff")) +
+  scale_colour_manual(values = c("Female" = "#a8a300", "Male" = "#28aad6")) +
+  # Labels
+  labs(
+    x        = NULL,
+    y        = "Socioeconomic position",
+    fill     = "Gender"
+  ) +
+  
+  # Clean theme
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 15),
+    plot.subtitle    = element_text(colour = "grey50", size = 10),
+    legend.position  = "none",          # gender is already on x-axis
+    panel.grid.major.x = element_blank()
+  )
+
+print(p)
+
+#Visualization: H2b:
+
+
+
+clean_1b <- clean_1b %>%
+  mutate(
+    C4 = factor(C4,
+                       levels = c(1, 2),
+                       labels = c("Ambiguous", "Not Ambiguous"))
+  )
+
+
+prop_ambig <- clean_1b |>
+  group_by(B1, C4) |>
+  summarise(n = n(), .groups = "drop") |>
+  group_by(B1) |>
+  mutate(prop = n / sum(n),
+         pct  = paste0(round(prop * 100, 1), "%"))
+
+print(prop_ambig)
+
+p2 <- ggplot(prop_ambig, aes(x = B1, y = prop, fill = C4)) +
+  
+  geom_col(position = "dodge", width = 0.5, colour = "white") +
+  
+  # Percentage labels on top of each bar
+  geom_text(aes(label = pct),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.8, fontface = "bold") +
+  
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1),
+                     expand = expansion(mult = c(0, 0.08))) +
+  
+  scale_fill_manual(values = c("Ambiguous"     = "#fffa93",
+                               "Not Ambiguous" = "#a7e7ff")) +
+  
+  labs(
+    x        = NULL,
+    y        = "Proportion of Antagonists",
+    fill     = "Socioeconomic Position"
+  ) +
+  
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title        = element_text(face = "bold", size = 14),
+    plot.subtitle     = element_text(colour = "grey50", size = 10),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor  = element_blank(),
+    legend.position   = "top"
+  )
+
+print(p2)
+
+#Visualization H3
+
+prop_emo <- clean_3final_filtered |>
+  group_by(B1, E1) |>
+  summarise(n = n(), .groups = "drop") |>
+  group_by(B1) |>
+  mutate(prop = n / sum(n),
+         pct  = paste0(round(prop * 100, 1), "%"))
+
+print(prop_emo)
+
+p3 <- ggplot(prop_emo, aes(x = B1, y = prop, fill = E1)) +
+  
+  geom_col(position = "dodge", width = 0.5, colour = "white") +
+  
+  # Percentage labels on top of each bar
+  geom_text(aes(label = pct),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.8, fontface = "bold") +
+  
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1),
+                     expand = expansion(mult = c(0, 0.08))) +
+  
+  scale_fill_manual(values = c("calm"     = "#fffa93",
+                               "emotional" = "#a7e7ff")) +
+  
+  labs(
+    x        = NULL,
+    y        = "Proportion of Antagonists",
+    fill     = "Emotional register"
+  ) +
+  
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title        = element_text(face = "bold", size = 14),
+    plot.subtitle     = element_text(colour = "grey50", size = 10),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor  = element_blank(),
+    legend.position   = "top"
+  )
+
+print(p3)
+
+##H2a
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
+rel_df <- clean_2final %>%
+  group_by(B1, relational_emotional_obstruction) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(B1) %>%
+  mutate(prop = n / sum(n),
+         label = paste0(round(prop * 100, 1), "%\n(n=", n, ")"),
+         obs = ifelse(relational_emotional_obstruction == 1, "Present", "Absent"),
+         obs = factor(obs, levels = c("Present", "Absent")))
+
+str_df <- clean_2final %>%
+  group_by(B1, structural_material_obstruction) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(B1) %>%
+  mutate(prop = n / sum(n),
+         label = paste0(round(prop * 100, 1), "%\n(n=", n, ")"),
+         obs = ifelse(structural_material_obstruction == 1, "Present", "Absent"),
+         obs = factor(obs, levels = c("Present", "Absent")))
+
+make_plot <- function(df, title, low, high) {
+  ggplot(df, aes(x = B1, y = obs, fill = prop)) +
+    geom_tile(colour = "white", linewidth = 2, height = 1) +
+    geom_text(aes(label = label),
+              colour = "grey20",
+              fontface = "bold", size = 4) +
+    scale_fill_gradient(low = low, high = high, limits = c(0, 1)) +
+    scale_colour_manual(values = c("light" = "white", "dark" = "grey20"),
+                        guide = "none") +
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid    = element_blank(),
+      plot.title    = element_text(face = "bold", hjust = 0.5, size = 12),
+      legend.position = "none"
+    )
+}
+
+p4 <- make_plot(rel_df,
+                "Relational / Emotional Obstruction",
+                "#a7e7ff", "#1a8ab0")   # light blue → dark blue
+
+p5 <- make_plot(str_df,
+                "Structural / Material Obstruction",
+                "#fffa93", "#a8a300")   # light yellow → dark yellow
+print(p4 + p5 + 
+        plot_annotation(
+          theme = theme(plot.title = element_text(face = "bold", size = 14))
+        ))
+
+#H2b
+
+rel_mot_df <- clean_2final %>%
+  group_by(B1, relationally_embedded_motives) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(B1) %>%
+  mutate(prop = n / sum(n),
+         label = paste0(round(prop * 100, 1), "%\n(n=", n, ")"),
+         obs = factor(ifelse(relationally_embedded_motives == 1, "Present", "Absent"),
+                      levels = c("Present", "Absent")))
+
+stat_mot_df <- clean_2final %>%
+  group_by(B1, status_oriented_motives) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(B1) %>%
+  mutate(prop = n / sum(n),
+         label = paste0(round(prop * 100, 1), "%\n(n=", n, ")"),
+         obs = factor(ifelse(status_oriented_motives == 1, "Present", "Absent"),
+                      levels = c("Present", "Absent")))
+
+p6 <- make_plot(rel_mot_df,
+                "Relationally Embedded Motives",
+                "#a7e7ff", "#1a8ab0")
+
+p7 <- make_plot(stat_mot_df,
+                "Status-Oriented Motives",
+                "#fffa93", "#a8a300")
+
+print(p6 + p7 +
+        plot_annotation(
+          theme = theme(plot.title = element_text(face = "bold", size = 14))
+        ))
+#H3c
+
+priv_df <- clean_2final %>%
+  group_by(B1, personal_private_sphere) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(B1) %>%
+  mutate(prop = n / sum(n),
+         label = paste0(round(prop * 100, 1), "%\n(n=", n, ")"),
+         obs = factor(ifelse(personal_private_sphere == 1, "Present", "Absent"),
+                      levels = c("Present", "Absent")))
+
+pub_df <- clean_2final %>%
+  group_by(B1, public_professional_sphere) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(B1) %>%
+  mutate(prop = n / sum(n),
+         label = paste0(round(prop * 100, 1), "%\n(n=", n, ")"),
+         obs = factor(ifelse(public_professional_sphere == 1, "Present", "Absent"),
+                      levels = c("Present", "Absent")))
+
+p8 <- make_plot(priv_df,
+                "Personal / Private Sphere",
+                "#a7e7ff", "#1a8ab0")
+
+p9 <- make_plot(pub_df,
+                "Public / Professional Sphere",
+                "#fffa93", "#a8a300")
+
+print(p8 + p9 +
+        plot_annotation(
+          theme = theme(plot.title = element_text(face = "bold", size = 14))
+        ))
+#gay
+clean %>%
+  filter(A4 == 2, C1 == 0) %>%
+  count(B1)
+clean |>
+  filter (A4 == 2) |>
+  count()
