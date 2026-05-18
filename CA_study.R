@@ -181,15 +181,6 @@ chisq.test(table_physical_obstruction)
 # effect size (Cramer's V)
 cramers_v(table_relational_obstruction)
 
-## trying my best: logistic regression H2a
-model_relational <- glm(relational_emotional_obstruction ~ B1 + structural_material_obstruction, 
-                        data = clean_2final, family = binomial)
-exp(coef(model_relational)); exp(confint(model_relational))
-
-model_structural <- glm(structural_material_obstruction ~ B1 + relational_emotional_obstruction, 
-                        data = clean_2final, family = binomial)
-exp(coef(model_structural)); exp(confint(model_structural))
-
 
 
 ## chi-square H2b
@@ -258,6 +249,8 @@ table_public_professional_sphere
 chisq.test(table_personal_private_sphere)
 chisq.test(table_public_professional_sphere)
 
+
+
 ## chi-square H3
 # contingency table
 clean_3final_filtered <- clean_3final[clean_3final$E1 != "mixed", ]
@@ -270,3 +263,158 @@ chisq.test(table_emotion)
 # effect size (Cramer's V)
 cramers_v(table_emotion)
 
+
+
+
+
+
+
+##-------------Exploratory Analysis---------------------
+
+# Does certain narrative role pattern cluster?
+table(clean_2final$B1,
+      clean_2final$relational_emotional_obstruction,
+      clean_2final$relationally_embedded_motives)
+
+table(clean_2final$B1,
+      clean_2final$structural_material_obstruction,
+      clean_2final$status_oriented_motives)
+
+table(clean_2final$B1,
+      clean_2final$relational_emotional_obstruction,
+      clean_2final$personal_private_sphere)
+
+# Test the cluster relational obstruction X relational motives X private sphere in genders (according to the contingency tables)
+clean_2final <- clean_2final |>
+  mutate(
+    relational_cluster = as.integer(
+      relational_emotional_obstruction == 1 &
+        relationally_embedded_motives == 1 &
+        personal_private_sphere == 1
+    )
+  )
+
+rel_cluster_table <- table(
+  Gender = clean_2final$B1,
+  RelationalCluster = clean_2final$relational_cluster
+)
+
+rel_cluster_table
+
+prop.table(rel_cluster_table, margin = 1) * 100
+
+chisq.test(rel_cluster_table, correct = FALSE)
+
+cramers_v(rel_cluster_table)
+
+# Logistic regression on the same one
+model_rel_cluster <- glm(
+  relational_cluster ~ B1,
+  data = clean_2final,
+  family = binomial
+)
+
+summary(model_rel_cluster)
+
+exp(coef(model_rel_cluster)) # Odds ratio
+
+exp(confint(model_rel_cluster))
+
+
+
+## Construct mutual exclusive variables (for robustness test)
+clean_2final <- clean_2final |>
+  mutate(obstruction_type = case_when(
+    relational_emotional_obstruction == 1 & structural_material_obstruction == 0 ~ "Relational only",
+    relational_emotional_obstruction == 0 & structural_material_obstruction == 1 ~ "Structural only",
+    relational_emotional_obstruction == 1 & structural_material_obstruction == 1 ~ "Both",
+    relational_emotional_obstruction == 0 & structural_material_obstruction == 0 ~ "Neither"
+  ))
+
+obstruction_table <- table(clean_2final$B1, clean_2final$obstruction_type)
+obstruction_table
+chisq.test(obstruction_table)
+cramers_v(obstruction_table)
+
+
+
+clean_2final <- clean_2final |>
+  mutate(motive_type = case_when(
+    relationally_embedded_motives == 1 & status_oriented_motives == 0 ~ "Relational only",
+    relationally_embedded_motives == 0 & status_oriented_motives == 1 ~ "Status only",
+    relationally_embedded_motives == 1 & status_oriented_motives == 1 ~ "Both",
+    relationally_embedded_motives == 0 & status_oriented_motives == 0 ~ "Neither"
+  ))
+
+motive_table <- table(clean_2final$B1, clean_2final$motive_type)
+motive_table
+chisq.test(motive_table)
+cramers_v(motive_table)
+
+
+
+clean_2final <- clean_2final |>
+  mutate(sphere_type = case_when(
+    personal_private_sphere == 1 & public_professional_sphere == 0 ~ "Personal/private only",
+    personal_private_sphere == 0 & public_professional_sphere == 1 ~ "Public/professional only",
+    personal_private_sphere == 1 & public_professional_sphere == 1 ~ "Both",
+    personal_private_sphere == 0 & public_professional_sphere == 0 ~ "Neither"
+  ))
+
+sphere_table <- table(clean_2final$B1, clean_2final$sphere_type)
+sphere_table
+chisq.test(sphere_table)
+
+
+# Sphere type not significant, try removing the cases that contains both sphere
+sphere_pure <- clean_2final |>
+  filter(sphere_type %in% c("Personal/private only", "Public/professional only"))
+
+sphere_pure_table <- table(sphere_pure$B1, sphere_pure$sphere_type)
+
+sphere_pure_table
+prop.table(sphere_pure_table, margin = 1) * 100
+
+chisq.test(sphere_pure_table)   # Still not significant, could be concerning could be
+
+
+## Cultural difference
+cols_lang_ses <- c("A2", "A4", "B1", "C1", "C2", "C3")
+clean_lang_ses <- clean[cols_lang_ses]
+
+# Remove cases with "not mentioned / other" answers in SES items
+clean_lang_ses <- clean_lang_ses[!apply(clean_lang_ses[, c("C1", "C2", "C3")] == 0, 1, any), ]
+
+# Create SES scale (not significant at all)
+clean_lang_ses <- clean_lang_ses |>
+  mutate(
+    c_scale = round((C1 + C2 + C3) / 3, 2)
+  )
+
+clean_lang_ses <- clean_lang_ses |>
+  mutate(
+    language = case_when(
+      A4 == 1 ~ "English",
+      A4 == 2 ~ "Chinese",
+      A4 == 3 ~ "Korean",
+      TRUE ~ NA_character_
+    ),
+    language = factor(language)
+  )
+
+clean_lang_ses |>
+  group_by(language) |>
+  summarise(
+    n = n(),
+    mean_ses = mean(c_scale, na.rm = TRUE),
+    sd_ses = sd(c_scale, na.rm = TRUE),
+    median_ses = median(c_scale, na.rm = TRUE),
+    min_ses = min(c_scale, na.rm = TRUE),
+    max_ses = max(c_scale, na.rm = TRUE)
+  )
+
+model_lang_ses <- aov(c_scale ~ language, data = clean_lang_ses)
+
+summary(model_lang_ses)
+
+TukeyHSD(model_lang_ses)
