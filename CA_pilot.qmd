@@ -4,75 +4,69 @@ format: html
 editor: visual
 ---
 
-## CA_pilot
+# **CA_pilot**
+
+## Data Cleaning
 
 ```{r}
-# =========================================================
-# Intercoder reliability script for CA_pilot.csv
-# - Reads the file
-# - Cleans missing values
-# - Uses A1 = coder, A2 = case
-# - Computes Krippendorff's alpha per variable
-# - Computes simple percent agreement per variable
-# - Exports results to CSV
-# =========================================================
 
-# 1) Install packages once if needed
-# install.packages(c("irr", "tidyverse"))
-
-# 2) Load packages
 library(irr)
 library(tidyverse)
 
-# 3) Read the data
-# Change the path if your file is stored elsewhere
 dat <- read.csv("CA_pilot.csv", sep = ";", stringsAsFactors = FALSE)
 
-# 4) Convert empty strings to NA
+# Convert empty strings to NA
 dat[dat == ""] <- NA
 dat[dat == " "] <- NA
 
-# 5) Define coder ID and case ID
 # A1 = coder, A2 = case/article/unit
-dat <- dat %>%
-  mutate(
+dat <- dat |> 
+  rename(
     coder = A1,
     case = A2
   )
+```
 
-# 6) Define variables to include in intercoder reliability
-# Ordinal variables: ordered categories / scales
+## Function Creating
+
+```{r}
+# -------Define variables to include in intercoder reliability-----------
+
+# Ordinal variables
 ordinal_vars <- c("C1", "C2", "C3")
 
-# Nominal categorical variables: a few categories, but no natural order
-categorical_vars <- c("A3.0", "B1", "B2", "C4", "E1")
+# Nominal categorical variables
+categorical_vars <- c("A4", "B1", "B2", "C4", "E1")
 
-# Binary variables: checkbox / yes-no style coded columns
+# Binary variables
 binary_vars <- c(
   "D1_1", "D1_2", "D1_3",
   "D2_1", "D2_2", "D2_3", "D2_4", "D2_5", "D2_6",
   "D3_1", "D3_2"
 )
 
-# 7) Convert variables to numeric
-# For binary variables, blank = 0, coded value = numeric
-dat <- dat %>%
+# Convert variables to numeric
+
+  # For binary variables, blank = 0, coded value = numeric
+dat <- dat |> 
   mutate(
     across(all_of(ordinal_vars), as.numeric),
     across(all_of(binary_vars), ~ ifelse(is.na(.), 0, as.numeric(.)))
   )
 
-# 8) Function to compute Krippendorff's alpha for one variable
+# ------Function to compute Krippendorff's alpha for one variable-----------------
+
 # method = "ordinal" for ordinal data
 # method = "nominal" for binary / unordered categories
+
 calc_alpha <- function(data, var, method) {
   
   # Reshape from long format to wide format:
   # rows = cases, columns = coders
-  wide <- data %>%
-    select(case, coder, all_of(var)) %>%
-    pivot_wider(names_from = coder, values_from = all_of(var)) %>%
-    arrange(case) %>%
+  wide <- data |> 
+    select(case, coder, all_of(var)) |> 
+    pivot_wider(names_from = coder, values_from = all_of(var)) |> 
+    arrange(case) |> 
     select(-case)
   
   # Convert to matrix
@@ -90,16 +84,17 @@ calc_alpha <- function(data, var, method) {
   )
 }
 
-# 9) Function to compute simple percent agreement
+# ------------Function to compute simple percent agreement----------------------
+
 # This checks whether all non-missing coder values match within each case
 percent_agreement <- function(data, var) {
   
-  wide <- data %>%
-    select(case, coder, all_of(var)) %>%
-    pivot_wider(names_from = coder, values_from = all_of(var)) %>%
+  wide <- data |> 
+    select(case, coder, all_of(var)) |> 
+    pivot_wider(names_from = coder, values_from = all_of(var)) |> 
     arrange(case)
   
-  ratings <- wide %>% select(-case)
+  ratings <- wide |>  select(-case)
   
   agreement_case <- apply(ratings, 1, function(x) {
     x <- x[!is.na(x)]
@@ -112,36 +107,47 @@ percent_agreement <- function(data, var) {
     percent_agreement = mean(agreement_case, na.rm = TRUE) * 100
   )
 }
+```
 
-# 10) Run alpha for ordinal variables
+## Inter-coder Reliability
+
+```{r}
+# Run alpha for ordinal variables
 ord_results <- map_dfr(ordinal_vars, ~ calc_alpha(dat, .x, method = "ordinal"))
 
-# 11) Run alpha for nomical variables
+# Run alpha for nomical variables
 bin_results1 <- map_dfr(binary_vars, ~ calc_alpha(dat, .x, method = "nominal"))
 bin_results2 <- map_dfr(categorical_vars, ~ calc_alpha(dat, .x, method = "nominal"))
 
-# 12) Combine alpha results
+# Combine alpha results
 alpha_results <- bind_rows(ord_results, bin_results1, bin_results2)
 
-# 13) Run percent agreement for all included variables
+# Round results to 2 decimals
+alpha_results <- alpha_results |> 
+  mutate(alpha = round(alpha, 2))
+
+# Run percent agreement for all included variables
 agreement_results <- map_dfr(
   c(ordinal_vars, binary_vars, categorical_vars),
   ~ percent_agreement(dat, .x)
-)
+) |> 
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
 
-# 14) Merge alpha + agreement into one table
-final_results <- alpha_results %>%
-  left_join(agreement_results, by = "variable") %>%
+# Merge alpha and agreement into one table
+ final_results <- alpha_results |> 
+  left_join(agreement_results, by = "variable") |> 
   arrange(variable)
 
-# 15) Print results to console
+# Print results to console
 print(final_results)
+```
 
-# 16) Save results to CSV
-write.csv(final_results, "intercoder_reliability_results.csv", row.names = FALSE)
+## Optional Helper & Visualization
 
-# 17) Optional: quick interpretation helper
-final_results <- final_results %>%
+```{r}
+# -----------------Optional: quick interpretation helper--------------------------
+
+final_results <- final_results |> 
   mutate(
     interpretation = case_when(
       alpha >= 0.80 ~ "strong",
@@ -153,27 +159,16 @@ final_results <- final_results %>%
 
 print(final_results)
 
-# 18) Save interpreted results too
-write.csv(final_results, "intercoder_reliability_results_interpreted.csv", row.names = FALSE)
+# -----------------------Visualization of table-----------------------------
+library(gt)
 
-# =========================================================
-# NOTES
-# - Excluded from this script:
-#   A3  = text/string field
-#   F1  = comments/free text
-#   D1_0, D2_0, D3_0 = mostly empty in your file
-#
-# - If you want to include A3, first standardize it manually because
-#   spelling differences will reduce reliability artificially.
-#
-# - This script assumes:
-#   each case appears once per coder,
-#   and coder IDs in A1 are consistent.
-# =========================================================
+# gt(final_results) |> gtsave("~/Desktop/final_results.png")
 ```
 
+## Mock Hypothesis Testing
+
 ```{r}
-# descriptives
+# Pilot testing descriptives
 dat |> count(B1)
 
 whatever = dat |>
@@ -210,7 +205,7 @@ t.test(C_score ~ B1, data = whatever4, na.rm = TRUE)
 ```
 
 ```{r}
-#for ambiguity
+# For ambiguity
 dat |> group_by(B1, C4) |>
   summarise(n = n(), .groups = "drop")
 ```
